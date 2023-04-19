@@ -24,7 +24,7 @@ nimbus-note-exporter
 
 And you'll be prompted for your email & password. Your credentials are required for login to work.
 
-> **Note:** You should not enter important credentials anywhere EXCEPT the official website. However, if you MUST then be CAREFUL and make sure your credentials aren't going anywhere you don't want.
+> **Note:** You should not enter important credentials anywhere EXCEPT the official website. However, if you are required to do so anywhere else then be CAREFUL and make sure your credentials aren't going anywhere you don't want/intend.
 
 ## How it works?
 
