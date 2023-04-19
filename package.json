@@ -1,0 +1,43 @@
+{
+  "name": "nimbus-note-exporter",
+  "version": "1.0.0",
+  "description": "Export all your notes (includings tags & other metadata) from Nimbus Note.",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
+  "keywords": [
+    "nimbus-note",
+    "export"
+  ],
+  "author": "Abdullah Atta <abdullahatta@streetwriters.co>",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@types/isomorphic-fetch": "^0.0.36",
+    "@types/node": "^16.11.10",
+    "@types/prompts": "^2.4.4",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.8.2"
+  },
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@types/adm-zip": "^0.5.0",
+    "adm-zip": "^0.5.10",
+    "css-select": "^5.1.0",
+    "dom-serializer": "^2.0.0",
+    "domhandler": "^5.0.3",
+    "domutils": "^3.0.1",
+    "fdir": "^6.0.1",
+    "htmlparser2": "^8.0.1",
+    "isomorphic-fetch": "^3.0.0",
+    "nodejs-file-downloader": "^4.11.1",
+    "ora": "^5.4.1",
+    "p-queue": "^6.6.2",
+    "prompts": "^2.4.2",
+    "sanitize-filename": "^1.6.3",
+    "socket.io-client": "^4.6.1",
+    "tempy": "^1.0.1"
+  }
+}
