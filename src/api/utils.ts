@@ -1,7 +1,7 @@
 /*
-This file is part of the Notesnook project (https://notesnook.com/)
+This file is part of the nimbus-note-exporter project
 
-Copyright (C) 2022 Streetwriters (Private) Limited
+Copyright (C) 2023 Abdullah Atta
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@ export async function request(options: RequestOptions) {
       "Content-Type": json
         ? "application/json"
         : "application/x-www-form-urlencoded; charset=UTF-8",
-      Cookie: user?.sessionId ? `eversessionid=${user?.sessionId}` : ""
+      Cookie: user?.sessionId ? `eversessionid=${user?.sessionId}` : "",
     },
     referrer: `https://${domain}/client`,
     body,
-    method
+    method,
   });
 }

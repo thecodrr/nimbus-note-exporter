@@ -1,7 +1,7 @@
 /*
-This file is part of the Notesnook project (https://notesnook.com/)
+This file is part of the nimbus-note-exporter project
 
-Copyright (C) 2022 Streetwriters (Private) Limited
+Copyright (C) 2023 Abdullah Atta
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ export async function getWorkspaces(user: User) {
   const response = await request({
     endpoint: `/gwapi2/ft%3Atasks/workspace-infos`,
     method: "GET",
-    user
+    user,
   });
   if (!response.ok) throw new Error("Failed to get workspaces.");
   return <Workspace[]>await response.json();

@@ -1,7 +1,7 @@
 /*
-This file is part of the Notesnook project (https://notesnook.com/)
+This file is part of the nimbus-note-exporter project
 
-Copyright (C) 2022 Streetwriters (Private) Limited
+Copyright (C) 2023 Abdullah Atta
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -36,14 +36,14 @@ export async function login(email: string, password: string): Promise<User> {
   const response = await request({
     endpoint: "/auth/api/auth",
     method: "POST",
-    body: `{"login":"${email}","password":"${password}"}`
+    body: `{"login":"${email}","password":"${password}"}`,
   });
   const json = (await response.json()) as LoginResponse;
   if (json.errorCode !== 0) throw new Error("Wrong password.");
 
   return {
     sessionId: json.body.sessionId,
-    domain: await getDomain(json.body.sessionId)
+    domain: await getDomain(json.body.sessionId),
   };
 }
 
@@ -51,7 +51,7 @@ async function getDomain(sessionId: string) {
   const response = await request({
     endpoint: "/client?t=regfsour:header",
     method: "HEAD",
-    user: { sessionId }
+    user: { sessionId },
   });
   if (!response.ok) throw new Error("Failed to get user domain.");
   return new URL(response.url).hostname;

@@ -1,7 +1,7 @@
 /*
-This file is part of the Notesnook project (https://notesnook.com/)
+This file is part of the nimbus-note-exporter project
 
-Copyright (C) 2022 Streetwriters (Private) Limited
+Copyright (C) 2023 Abdullah Atta
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ export async function getNotes(user: User, workspaceId: string) {
   const response = await request({
     user,
     endpoint: `/api/workspaces/${workspaceId}/notes`,
-    method: "GET"
+    method: "GET",
   });
   const notes = (await response.json()) as Note[];
 
@@ -85,7 +85,7 @@ async function getNoteTags(user: User, note: Note) {
   const response = await request({
     user,
     endpoint: `/api/workspaces/${note.workspaceId}/notes/${note.globalId}/tags`,
-    method: "GET"
+    method: "GET",
   });
   return (await response.json()) as string[];
 }
@@ -108,9 +108,9 @@ export async function exportNote(
       style: "normal",
       size: "normal",
       paperFormat: "A4",
-      folders: {}
+      folders: {},
     }),
-    json: true
+    json: true,
   });
   const { id } = (await response.json()) as { id: string };
   return id;
@@ -126,7 +126,7 @@ export async function downloadNotes(
 
   const socket = io(`wss://${user.domain}`, {
     extraHeaders: { Cookie: `eversessionid=${user.sessionId}` },
-    transports: ["websocket"]
+    transports: ["websocket"],
   });
 
   await new Promise((resolve) =>
@@ -180,7 +180,7 @@ export async function downloadNotes(
     messages.map((event) => {
       return async () => {
         const filename = sanitize(event.message.fileName, {
-          replacement: "-"
+          replacement: "-",
         });
 
         if (existsSync(path.join(outputPath, filename))) {
@@ -192,7 +192,7 @@ export async function downloadNotes(
           fileName: filename,
           directory: outputPath,
           shouldBufferResponse: true,
-          timeout: 60000
+          timeout: 60000,
         });
 
         await downloader.download();
