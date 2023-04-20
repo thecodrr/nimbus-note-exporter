@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import path from "path";
 import { login } from "./api/auth";
 import { downloadNotes, getNotes } from "./api/notes";
-import { getWorkspaces } from "./api/workspaces";
+import { getWorkspaces, getOrganizations } from "./api/teams";
 import ADMZip from "adm-zip";
 import { mkdir, rm, writeFile } from "fs/promises";
 import { fdir } from "fdir";
@@ -51,10 +51,21 @@ async function main() {
     () => login(email, password)
   );
 
+  const organizations = await workWithSpinner(
+    "Getting organizations...",
+    (w) => `Found ${w.length} organizations`,
+    () => getOrganizations(user)
+  );
+
   const workspaces = await workWithSpinner(
     "Getting workspaces...",
-    (w) => `Got ${w.length} workspaces`,
-    () => getWorkspaces(user)
+    (w) => `Found ${w.length} workspaces`,
+    async () =>
+      (
+        await Promise.all(
+          organizations.map((org) => getWorkspaces(user, org.globalId))
+        )
+      ).flat()
   );
 
   const notes = await workWithSpinner(
@@ -62,9 +73,11 @@ async function main() {
     (n) => `Found ${n.length} notes across ${workspaces.length} workspaces`,
     async () =>
       (
-        await Promise.all(workspaces.map((w) => getNotes(user, w.workspaceId)))
+        await Promise.all(workspaces.map((w) => getNotes(user, w.globalId)))
       ).flat()
   );
+
+  if (notes.length === 0) throw new Error("0 notes found.");
 
   await workWithSpinner(
     "Downloading notes...",
