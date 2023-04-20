@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import path from "path";
 import { login } from "./api/auth";
-import { downloadNotes, getNotes } from "./api/notes";
+import { Note, downloadNotes, getNotes } from "./api/notes";
 import { getWorkspaces, getOrganizations } from "./api/teams";
 import ADMZip from "adm-zip";
 import { mkdir, rm, writeFile } from "fs/promises";
@@ -68,12 +68,12 @@ async function main() {
       ).flat()
   );
 
-  const notes = await workWithSpinner(
-    "Getting notes...",
+  const notes = await workWithSpinner<Note[]>(
+    "Getting notes metadata...",
     (n) => `Found ${n.length} notes across ${workspaces.length} workspaces`,
-    async () =>
+    async (spinner) =>
       (
-        await Promise.all(workspaces.map((w) => getNotes(user, w.globalId)))
+        await Promise.all(workspaces.map((w) => getNotes(user, w, spinner)))
       ).flat()
   );
 
@@ -89,16 +89,17 @@ async function main() {
     "Processing notes...",
     () => `Notes processed.`,
     async (spinner) => {
+      const extracted = new Set();
       for (const note of notes) {
-        if (!note.path) continue;
-        const zipPath = path.join(outputPath, note.path);
-        const zip = new ADMZip(zipPath);
-        const dir = path.join(extractPath, note.globalId);
+        if (!note.path || extracted.has(note.globalId)) continue;
 
+        const zipPath = path.join(outputPath, note.path);
+        const dir = path.join(extractPath, note.globalId);
         await mkdir(dir, { recursive: true });
 
-        spinner.text = `Extracting ${note.title} to ${dir}`;
+        spinner.text = `Extracting ${zipPath} to ${dir}`;
 
+        const zip = new ADMZip(zipPath);
         await new Promise((resolve, reject) =>
           zip.extractAllToAsync(dir, true, true, (err) =>
             err ? reject(err) : resolve(undefined)
@@ -109,7 +110,7 @@ async function main() {
 
         await writeFile(path.join(dir, "metadata.json"), JSON.stringify(note));
 
-        await rm(zipPath);
+        extracted.add(note.globalId);
       }
     }
   );

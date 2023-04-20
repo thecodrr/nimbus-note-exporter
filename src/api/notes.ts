@@ -27,6 +27,7 @@ import path from "path";
 import Downloader from "nodejs-file-downloader";
 import PQueue from "p-queue";
 import { Ora } from "ora";
+import { Workspace } from "./teams";
 
 export interface Note {
   globalId: string;
@@ -60,16 +61,34 @@ export interface Note {
   tags?: string[];
 }
 
-export async function getNotes(user: User, workspaceId: string) {
-  const response = await request({
-    user,
-    endpoint: `/api/workspaces/${workspaceId}/notes`,
-    method: "GET",
-  });
-  const notes = (await response.json()) as Note[];
+export async function getNotes(
+  user: User,
+  workspace: Workspace,
+  spinner?: Ora
+) {
+  const pageSize = 500;
+  const notes: Note[] = [];
 
-  const pqueue = new PQueue({ concurrency: 8 });
+  while (notes.length < workspace.notesCount) {
+    const response = await request({
+      user,
+      endpoint: `/api/workspaces/${
+        workspace.globalId
+      }/notes?range=${JSON.stringify({
+        limit: pageSize,
+        offset: notes.length,
+      })}`,
+      method: "GET",
+    });
+    notes.push(...((await response.json()) as Note[]));
 
+    if (spinner)
+      spinner.text = `Getting notes metadata (${notes.length}/${workspace.notesCount})`;
+  }
+
+  if (spinner) spinner.text = `Getting tags for notes...`;
+
+  const pqueue = new PQueue({ concurrency: 16 });
   await pqueue.addAll(
     notes.map((note) => {
       return async () => {
@@ -152,6 +171,12 @@ export async function downloadNotes(
         messages.push({ message: event.message, note });
 
         queue.splice(queue.indexOf(event?.message?.uuid), 1);
+
+        if (spinner)
+          spinner.text = `Saving download urls (${
+            notes.length - queue.length
+          }/${notes.length})...`;
+
         if (queue.length === 0) {
           socket.close();
           resolve();
@@ -159,20 +184,28 @@ export async function downloadNotes(
       }
     });
 
-    const pqueue = new PQueue({ concurrency: 8 });
+    const pqueue = new PQueue({ concurrency: 16 });
+
+    if (spinner) {
+      let count = 0;
+      pqueue.on("active", () => {
+        spinner.text = `Exporting notes (${++count}/${notes.length})`;
+      });
+    }
 
     await pqueue.addAll(
       notes.map((note) => {
         return async () => {
           const exportId = await exportNote(user, note, "html");
           queue.push(exportId);
-          if (spinner) spinner.text = `Exporting ${note.globalId} as html...`;
         };
       })
     );
 
     if (spinner) spinner.text = `Waiting for download urls...`;
   });
+
+  if (spinner) spinner.text = `Starting download`;
 
   let done = 0;
   const pqueue = new PQueue({ concurrency: 8 });
@@ -198,9 +231,9 @@ export async function downloadNotes(
         await downloader.download();
 
         if (spinner)
-          spinner.text = `(${++done}/${messages.length}) Downloaded ${
-            event.message.fileName
-          }`;
+          spinner.text = `Downloaded ${event.message.fileName} (${++done}/${
+            messages.length
+          })`;
 
         event.note.path = filename;
       };
