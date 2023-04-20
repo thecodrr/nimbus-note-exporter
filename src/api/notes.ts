@@ -59,6 +59,8 @@ export interface Note {
 
   path?: string;
   tags?: string[];
+  parents?: string[];
+  workspace?: string;
 }
 
 export async function getNotes(

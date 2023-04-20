@@ -4,6 +4,17 @@ Nimbus Note recently removed the option (from their desktop clients) to bulk exp
 
 > **Note:** This tool is in no way endorsed or affiliated with Nimbus Note or any of their subsidiaries. If you come across any issue while using this tool, you should create a bug report in this repository — NOT ON THEIR SUPPORT CHANNEL.
 
+## Features
+
+This tool supports exporting of the following data types from Nimbus Note:
+
+1. Notes (including HTML content & metadata)
+2. Folders
+3. Attachments
+4. Tags
+5. Data across unlimited workspaces
+6. Data across unlimited organizations
+
 ## Usage
 
 ### Installation

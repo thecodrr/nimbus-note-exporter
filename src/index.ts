@@ -21,13 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import path from "path";
 import { login } from "./api/auth";
 import { Note, downloadNotes, getNotes } from "./api/notes";
-import { getWorkspaces, getOrganizations } from "./api/teams";
+import { getWorkspaces, getOrganizations, Workspace } from "./api/teams";
 import ADMZip from "adm-zip";
 import { mkdir, rm, writeFile } from "fs/promises";
 import { fdir } from "fdir";
 import prompts from "prompts";
 import ora, { Ora } from "ora";
 import { directory } from "tempy";
+import { Folder, getFolders } from "./api/folders";
 
 async function main() {
   const outputPath = directory();
@@ -66,6 +67,13 @@ async function main() {
           organizations.map((org) => getWorkspaces(user, org.globalId))
         )
       ).flat()
+  );
+
+  const folders = await workWithSpinner(
+    "Getting folders...",
+    (f) => `Found ${f.length} folders across ${workspaces.length} workspaces`,
+    async () =>
+      (await Promise.all(workspaces.map((w) => getFolders(user, w)))).flat()
   );
 
   const notes = await workWithSpinner<Note[]>(
@@ -108,6 +116,9 @@ async function main() {
 
         spinner.text = `Writing ${note.title} to disk`;
 
+        note.parents = resolveParents(note, folders);
+        note.workspace = resolveWorkspace(note, workspaces);
+
         await writeFile(path.join(dir, "metadata.json"), JSON.stringify(note));
 
         extracted.add(note.globalId);
@@ -123,6 +134,7 @@ async function main() {
     .forEach((filePath) =>
       zip.addLocalFile(path.join(extractPath, filePath), path.dirname(filePath))
     );
+
   await zip.writeZipPromise("./nimbus-export.zip");
 
   await rm(extractPath, { recursive: true, force: true });
@@ -131,6 +143,29 @@ async function main() {
   ora().start().succeed("All done.");
 }
 main();
+
+function resolveParents(note: Note, folders: Folder[]) {
+  const parents: string[] = [];
+  if (note.parentId === "root") return [];
+  let parent = folders.find((f) => f.globalId === note.parentId);
+  if (!parent) return [];
+  parents.push(parent.title);
+  while (parent.parentId !== "root") {
+    const folder = folders.find((f) => f.globalId === parent!.parentId);
+    if (!folder) break;
+
+    parent = folder;
+    parents.push(folder.title);
+  }
+
+  return parents.reverse();
+}
+
+function resolveWorkspace(note: Note, workspaces: Workspace[]) {
+  const workspace = workspaces.find((w) => w.globalId === note.workspaceId);
+  if (!workspace) return;
+  return workspace.title;
+}
 
 async function workWithSpinner<T>(
   text: string,
