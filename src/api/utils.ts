@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import makeFetchCookie from "fetch-cookie";
+
+const fetchCookie = makeFetchCookie(fetch);
+
 export type RequestOptions = {
   user?: { domain?: string; sessionId?: string };
   endpoint: string;
@@ -28,7 +32,8 @@ export type RequestOptions = {
 export async function request(options: RequestOptions) {
   const { user, endpoint, method, body, json } = options;
   const domain = user?.domain || "nimbusweb.me";
-  return await fetch(`https://${domain}${endpoint}`, {
+  const referer = user ? `https://${domain}/client` : `https://${domain}/auth`;
+  return await fetchCookie(`https://${domain}${endpoint}`, {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/111.0",
@@ -37,10 +42,11 @@ export async function request(options: RequestOptions) {
       "Content-Type": json
         ? "application/json"
         : "application/x-www-form-urlencoded; charset=UTF-8",
-      Cookie: user?.sessionId ? `eversessionid=${user?.sessionId}` : "",
+      referer,
     },
-    referrer: `https://${domain}/client`,
+    referrer: referer,
     body,
     method,
+    credentials: "include",
   });
 }

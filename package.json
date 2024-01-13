@@ -30,6 +30,7 @@
     "domhandler": "^5.0.3",
     "domutils": "^3.0.1",
     "fdir": "^6.0.1",
+    "fetch-cookie": "^2.1.0",
     "htmlparser2": "^8.0.1",
     "isomorphic-fetch": "^3.0.0",
     "nodejs-file-downloader": "^4.11.1",
