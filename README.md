@@ -6,6 +6,8 @@ Nimbus Note recently removed the option (from their desktop clients) to bulk exp
 
 > **Note 2:** I am not sure this tool comes under "legal" use of Nimbus Note internal APIs so if there's a complaint, I will have to take this down.
 
+> **This tool is strictly for personal use.**
+
 ## Features
 
 This tool supports exporting of the following data types from Nimbus Note:
