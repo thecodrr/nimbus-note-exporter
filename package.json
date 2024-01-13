@@ -1,9 +1,11 @@
 {
   "name": "nimbus-note-exporter",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Export all your notes (includings tags & other metadata) from Nimbus Note.",
   "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "bin": {
+    "nimbus-note-exporter": "dist/index.js"
+  },
   "keywords": [
     "nimbus-note",
     "export"
