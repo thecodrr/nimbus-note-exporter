@@ -154,7 +154,7 @@ export async function downloadNotes(
     socket.on("socketConnect:userConnected", resolve)
   );
 
-  const queue: string[] = [];
+  const queue: Map<string, number> = new Map();
   const messages: {
     message: { uuid: string; fileName: string; fileUrl: string };
     note: Note;
@@ -162,7 +162,10 @@ export async function downloadNotes(
 
   await new Promise<void>(async (resolve) => {
     socket.on("job:success", async (event) => {
-      if (event?.message?.fileUrl && queue.includes(event?.message?.uuid)) {
+      if (event?.message?.fileUrl && queue.has(event?.message?.uuid)) {
+        clearTimeout(queue.get(event?.message?.uuid));
+        queue.delete(event?.message?.uuid);
+
         const noteId = event?.message?.taskData?.noteGlobalId;
         const note = notes.find((note) => note.globalId === noteId);
         if (!note) {
@@ -172,14 +175,12 @@ export async function downloadNotes(
 
         messages.push({ message: event.message, note });
 
-        queue.splice(queue.indexOf(event?.message?.uuid), 1);
-
         if (spinner)
-          spinner.text = `Saving download urls (${
-            notes.length - queue.length
-          }/${notes.length})...`;
+          spinner.text = `Saving download urls (${notes.length - queue.size}/${
+            notes.length
+          })...`;
 
-        if (queue.length === 0) {
+        if (queue.size === 0) {
           socket.close();
           resolve();
         }
@@ -199,7 +200,16 @@ export async function downloadNotes(
       notes.map((note) => {
         return async () => {
           const exportId = await exportNote(user, note, "html");
-          queue.push(exportId);
+          queue.set(
+            exportId,
+            setTimeout(() => {
+              queue.delete(exportId);
+              if (queue.size === 0) {
+                socket.close();
+                resolve();
+              }
+            }, 60000) as unknown as number
+          );
         };
       })
     );
