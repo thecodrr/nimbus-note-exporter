@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { User } from "./auth";
+import { Attachment } from "./types";
 import { request } from "./utils";
 
 export interface Organization {
@@ -84,4 +85,13 @@ export async function getWorkspaces(user: User, organizationId: string) {
   });
   if (!response.ok) throw new Error("Failed to get workspaces.");
   return <Workspace[]>await response.json();
+}
+
+export async function getAttachments(user: User, workspaceId: string) {
+  const response = await request({
+    user,
+    endpoint: `/api/workspaces/${workspaceId}/attachments`,
+    method: "GET",
+  });
+  return (await response.json()) as Attachment[];
 }

@@ -28,40 +28,7 @@ import Downloader from "nodejs-file-downloader";
 import PQueue from "p-queue";
 import { Ora } from "ora";
 import { Workspace } from "./teams";
-
-export interface Note {
-  globalId: string;
-  parentId: string;
-  createdAt: number;
-  dateAdded: number;
-  dateUpdated: number;
-  updatedAt: number;
-  type: string;
-  role: string;
-  title: string;
-  url: string;
-  locationLat: number;
-  locationLng: number;
-  shared: boolean;
-  favorite: boolean;
-  lastChangeBy: number;
-  cntNotes: number;
-  size: number;
-  editnote: boolean;
-  isEncrypted: boolean;
-  isCompleted: boolean;
-  workspaceId: string;
-  isImported: boolean;
-  isFullwidth: boolean;
-  userId: number;
-  isReady: boolean;
-  outliner: boolean;
-
-  path?: string;
-  tags?: string[];
-  parents?: string[];
-  workspace?: string;
-}
+import { Note } from "./types";
 
 export async function getNotes(
   user: User,

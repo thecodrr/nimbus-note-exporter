@@ -20,8 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import path from "path";
 import { login } from "./api/auth";
-import { Note, downloadNotes, getNotes } from "./api/notes";
-import { getWorkspaces, getOrganizations, Workspace } from "./api/teams";
+import { downloadNotes, getNotes } from "./api/notes";
+import {
+  getWorkspaces,
+  getOrganizations,
+  getAttachments,
+  Workspace,
+} from "./api/teams";
 import ADMZip from "adm-zip";
 import { mkdir, rm, writeFile } from "fs/promises";
 import { fdir } from "fdir";
@@ -29,6 +34,7 @@ import prompts from "prompts";
 import ora, { Ora } from "ora";
 import { directory } from "tempy";
 import { Folder, getFolders } from "./api/folders";
+import { Note } from "./api/types";
 
 async function main() {
   const outputPath = directory();
@@ -76,6 +82,18 @@ async function main() {
       (await Promise.all(workspaces.map((w) => getFolders(user, w)))).flat()
   );
 
+  const attachments = await workWithSpinner(
+    "Getting attachments...",
+    (f) =>
+      `Found ${f.length} attachments across ${workspaces.length} workspaces`,
+    async () =>
+      (
+        await Promise.all(
+          workspaces.map((w) => getAttachments(user, w.globalId))
+        )
+      ).flat()
+  );
+
   const notes = await workWithSpinner<Note[]>(
     "Getting notes metadata...",
     (n) => `Found ${n.length} notes across ${workspaces.length} workspaces`,
@@ -118,6 +136,9 @@ async function main() {
 
         note.parents = resolveParents(note, folders);
         note.workspace = resolveWorkspace(note, workspaces);
+        note.attachments = attachments.filter(
+          (a) => a.noteGlobalId === note.globalId
+        );
 
         await writeFile(path.join(dir, "metadata.json"), JSON.stringify(note));
 
